@@ -46,6 +46,7 @@ app.listen(PORT, () => {
   console.log("- /api/books/*");
   console.log("- /api/customers/*");
   console.log("- /api/orders/*");
+  console.log("- /api/auth/*");
   console.log("- /health");
 });
 

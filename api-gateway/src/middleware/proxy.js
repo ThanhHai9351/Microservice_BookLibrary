@@ -10,15 +10,27 @@ const createServiceProxy = (serviceName) => {
   return createProxyMiddleware({
     target: serviceUrl,
     changeOrigin: true,
+    timeout: 1000,
+    proxyTimeout: 1000,
     pathRewrite: {
       [`^/api/${serviceName}`]: "",
     },
     onError: (err, req, res) => {
-      console.log(err);
-      res.status(500).json({
-        message: `Error connecting to ${serviceName} service`,
-        error: err.message,
-      });
+      console.error(err);
+      if (err.code === "ECONNRESET") {
+        console.log("Connection reset by peer");
+        if (!res.headersSent) {
+          res.writeHead(502, {
+            "Content-Type": "text/plain",
+          });
+          res.end("Connection to upstream server failed");
+        }
+      } else {
+        res.status(500).json({
+          message: `Error connecting to ${serviceName} service`,
+          error: err.message,
+        });
+      }
     },
   });
 };

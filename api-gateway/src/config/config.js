@@ -7,6 +7,7 @@ module.exports = {
     books: process.env.BOOKS_SERVICE_URL,
     customers: process.env.CUSTOMERS_SERVICE_URL,
     orders: process.env.ORDERS_SERVICE_URL,
+    auth: process.env.AUTH_SERVICE_URL,
   },
   rateLimit: {
     windowMs: eval(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
