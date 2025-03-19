@@ -6,6 +6,8 @@ const axios = require("axios");
 const app = express();
 const port = 5003;
 
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(bodyParser.json());
 
 const mongodbConnect = async () => {

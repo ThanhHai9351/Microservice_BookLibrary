@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "amqplib": "^0.10.5",
+    "jsonwebtoken": "^9.0.2",
+    "path": "^0.12.7",
+    "winston": "^3.17.0"
+  }
+}

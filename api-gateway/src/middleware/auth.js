@@ -12,7 +12,7 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const user = jwt.verify(token, config.jwtSecret);
+    const user = jwt.verify(token, config.accessToken);
     req.user = user;
     next();
   } catch (error) {

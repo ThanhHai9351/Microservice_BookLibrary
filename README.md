@@ -1,6 +1,6 @@
 # Library Management Microservices
 
-A modern microservices-based library management system with API Gateway using Nginx, JWT authentication, and Docker containerization.
+A modern microservices-based library management system with API Gateway using Nginx, JWT authentication, RabbitMQ message queue, and Docker containerization.
 
 ## System Architecture
 
@@ -18,18 +18,25 @@ A modern microservices-based library management system with API Gateway using Ng
          ┌───────┴───────┐┌───────┴───────┐┌───────┴───────┐
          │               ││               ││               │
          │  Books API    ││ Customers API ││  Orders API   │
-         │   (5001)      ││    (5002)     ││    (5003)     │
+         │   (3001)      ││    (3002)     ││    (3003)     │
          │               ││               ││               │
-         └───────────────┘└───────────────┘└───────────────┘
+         └───────┬───────┘└───────┬───────┘└───────┬───────┘
                  │                │                │
                  └────────────────┼────────────────┘
                                  │
                         ┌────────┴────────┐
                         │                 │
                         │  Auth Service   │
-                        │     (5004)      │
+                        │     (3004)      │
                         │                 │
-                        └─────────────────┘
+                        └────────┬────────┘
+                                │
+                        ┌───────┴────────┐
+                        │               │
+                        │   RabbitMQ    │
+                        │  (5672/15672) │
+                        │               │
+                        └───────────────┘
 ```
 
 ## Features
@@ -42,6 +49,13 @@ A modern microservices-based library management system with API Gateway using Ng
   - Error handling
   - Health check endpoint
 
+- **Message Queue (RabbitMQ)**
+  - Asynchronous communication between services
+  - Message persistence
+  - Dead letter queues
+  - Message retry mechanism
+  - Management UI (port 15672)
+
 - **Authentication Service**
   - JWT token generation
   - Token validation
@@ -52,69 +66,79 @@ A modern microservices-based library management system with API Gateway using Ng
   - Customers Service
   - Orders Service
 
-## Prerequisites
+## Message Queue Patterns
 
-- Docker
-- Docker Compose
-- Node.js (for local development)
+The system implements several message queue patterns:
 
-## Getting Started
+1. **Direct Exchange**
+   - Order processing
+   - Book inventory updates
+   - Customer notifications
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd library-management
+2. **Topic Exchange**
+   - Event logging
+   - Monitoring
+   - Analytics
+
+3. **Dead Letter Exchange**
+   - Failed message handling
+   - Retry mechanism
+   - Error logging
+
+## Queue Structure
+
+```
+exchanges/
+├── library.direct
+│   ├── orders.processing
+│   ├── books.inventory
+│   └── customers.notifications
+├── library.topic
+│   ├── logs.#
+│   ├── monitoring.#
+│   └── analytics.#
+└── library.dlx
+    └── dead.letter.queue
 ```
 
-2. Start the services using Docker Compose:
-```bash
-docker-compose up --build
+## RabbitMQ Management
+
+Access the RabbitMQ Management UI:
+- URL: http://localhost:15672
+- Username: admin
+- Password: admin123
+
+## Message Queue Examples
+
+1. Publishing a message:
+```javascript
+const mq = require('../shared/messageQueue');
+
+await mq.connect();
+await mq.publishToExchange('library.direct', 'orders.processing', {
+    orderId: '123',
+    status: 'pending'
+});
 ```
 
-## Service Endpoints
+2. Consuming messages:
+```javascript
+const mq = require('../shared/messageQueue');
 
-### API Gateway (Port 80)
-
-- Health Check: `GET /health`
-- Books API: `GET /api/books/`
-- Customers API: `GET /api/customers/`
-- Orders API: `GET /api/orders/`
-
-### Auth Service (Port 5004)
-
-- Generate Token: `POST /token`
-  ```json
-  {
-    "userId": "123",
-    "role": "user"
-  }
-  ```
-- Validate Token: `POST /validate`
-
-## Authentication
-
-All API endpoints (except `/health`) require JWT authentication. Include the token in the Authorization header:
-
-```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost/api/books
+await mq.connect();
+await mq.consume('orders.processing', async (message) => {
+    console.log('Processing order:', message);
+    // Process the order
+});
 ```
-
-## Rate Limiting
-
-- 10 requests per second per IP
-- Burst capacity: 20 requests
-- Error 429 returned when limit exceeded
-
-## Error Handling
-
-The API Gateway provides standardized error responses:
-
-- 401: Unauthorized - Invalid or missing token
-- 403: Forbidden - Access denied
-- 429: Too Many Requests - Rate limit exceeded
-- 500: Internal Server Error
 
 ## Environment Variables
+
+### RabbitMQ
+```env
+RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
+RABBITMQ_MANAGEMENT_PORT=15672
+```
 
 ### Auth Service
 ```env
@@ -175,6 +199,11 @@ npm run dev
 - Service health check endpoint: `/health`
 - Nginx access and error logs
 - Service-specific logs available via Docker
+- **RabbitMQ monitoring**:
+  - Message rates
+  - Queue lengths
+  - Connection status
+  - Error rates
 
 ## Troubleshooting
 
@@ -191,6 +220,13 @@ npm run dev
    - Check Nginx logs for rate limit errors
    - Adjust rate limit settings in nginx configuration
 
+4. **RabbitMQ Issues**
+   - Check RabbitMQ Management UI for queue status
+   - Verify connection strings
+   - Check for queue bindings
+   - Monitor dead letter queues
+   - Review message TTL settings
+
 ## Contributing
 
 1. Fork the repository
@@ -202,3 +238,59 @@ npm run dev
 ## License
 
 MIT License 
+
+## Additional Information
+
+### Publishing Logs
+
+Bất kỳ service nào có thể publish logs đến RabbitMQ:
+
+```javascript
+const mq = require('../shared/messageQueue');
+
+await mq.connect();
+await mq.publishToExchange('library.topic', 'logs.error', {
+    service: 'books',
+    error: 'Database connection failed',
+    timestamp: new Date()
+});
+```
+
+### Logging Service
+
+Logging Service có thể consume logs từ RabbitMQ:
+
+```javascript
+const mq = require('../shared/messageQueue');
+
+await mq.connect();
+await mq.consume('logs.error', async (log) => {
+    // Lưu log vào database
+    await saveLog(log);
+});
+```
+
+## Orders Service
+
+```javascript
+const mq = require('../shared/messageQueue');
+
+await mq.connect();
+await mq.publishToExchange('library.direct', 'orders.processing', {
+    orderId: '123',
+    books: ['book1', 'book2'],
+    customerId: 'cust123'
+});
+```
+
+## Books Service
+
+```javascript
+const mq = require('../shared/messageQueue');
+
+await mq.connect();
+await mq.consume('orders.processing', async (order) => {
+    // Kiểm tra và cập nhật tồn kho
+    await updateInventory(order.books);
+});
+``` 

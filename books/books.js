@@ -2,11 +2,13 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const Book = require("./book");
+const logger = require("../config/logger");
 
 const app = express();
 const port = 5001;
 
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(bodyParser.json({ limit: "10mb" }));
 
 const mongodbConnect = async () => {
   try {
@@ -22,6 +24,9 @@ app.post("/", async (req, res) => {
   try {
     const book = new Book(req.body);
     await book.save();
+    logger.info(`Creating new book: ${JSON.stringify(req.body)}`);
+    // Logic tạo sách
+    logger.info(`Book created successfully with ID: ${book.id}`);
     res.status(201).json(book);
   } catch (error) {
     res.status(500).json({ message: error.message });

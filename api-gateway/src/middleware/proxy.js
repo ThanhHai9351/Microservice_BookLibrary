@@ -10,8 +10,8 @@ const createServiceProxy = (serviceName) => {
   return createProxyMiddleware({
     target: serviceUrl,
     changeOrigin: true,
-    timeout: 1000,
-    proxyTimeout: 1000,
+    timeout: 100,
+    proxyTimeout: 100,
     pathRewrite: {
       [`^/api/${serviceName}`]: "",
     },
