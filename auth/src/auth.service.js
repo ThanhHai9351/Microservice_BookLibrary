@@ -6,6 +6,7 @@ const {
 } = require("../../global/globalResponse");
 const bcrypt = require("bcrypt");
 const { generateToken } = require("../../providers/jwt-provider");
+const logger = require("../../config/logger");
 
 const createCustomer = async (data, res) => {
   try {
@@ -22,14 +23,17 @@ const createCustomer = async (data, res) => {
       ...data,
       password: passwordNew,
     };
-    console.log(userNew);
     const customer = await Customer.create(userNew);
+    //ghi lại log
+    logger.info(`Creating new customer: ${JSON.stringify(userNew)}`);
+    logger.info(`Customer created successfully with ID: ${customer._id}`);
     return res
       .status(StatusCodes.CREATED)
       .json(
         GlobalResponseData(StatusCodes.CREATED, ReasonPhrases.CREATED, customer)
       );
-  } catch {
+  } catch (error) {
+    logger.error(`Error creating customer: ${error.message}`);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json(
@@ -68,13 +72,15 @@ const loginCustomerService = async (data, res) => {
       process.env.REFRESH_TOKEN,
       "1d"
     );
+    logger.info(`Login customer successfully with ID: ${checkCustomer._id}`);
     return res.status(StatusCodes.OK).json(
       GlobalResponseData(StatusCodes.OK, ReasonPhrases.OK, {
         accessToken,
         refreshToken,
       })
     );
-  } catch {
+  } catch (error) {
+    logger.error(`Error logging in customer: ${error.message}`);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json(

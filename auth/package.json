@@ -17,7 +17,9 @@
     "http-status-codes": "^2.3.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.0",
-    "mongoose": "^8.12.1"
+    "mongoose": "^8.12.1",
+    "path": "^0.12.7",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
