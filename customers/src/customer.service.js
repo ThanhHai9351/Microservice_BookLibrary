@@ -6,6 +6,7 @@ const {
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const logger = require("../../config/logger");
 const { verifyToken } = require("../../providers/jwt-provider");
+
 const getCustomersService = async (limit, page, search, res) => {
   try {
     let query = {};
