@@ -18,7 +18,7 @@ A modern microservices-based library management system with API Gateway using Ng
          ┌───────┴───────┐┌───────┴───────┐┌───────┴───────┐
          │               ││               ││               │
          │  Books API    ││ Customers API ││  Orders API   │
-         │   (3001)      ││    (3002)     ││    (3003)     │
+         │   (5001)      ││    (5002)     ││    (5003)     │
          │               ││               ││               │
          └───────┬───────┘└───────┬───────┘└───────┬───────┘
                  │                │                │
@@ -27,7 +27,7 @@ A modern microservices-based library management system with API Gateway using Ng
                         ┌────────┴────────┐
                         │                 │
                         │  Auth Service   │
-                        │     (3004)      │
+                        │     (5004)      │
                         │                 │
                         └────────┬────────┘
                                 │
