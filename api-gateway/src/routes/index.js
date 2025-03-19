@@ -11,31 +11,19 @@ router.get("/health", (req, res) => {
 });
 
 // Books service routes
-router.use(
-  "/api/books",
-  // authenticateToken,
-  createServiceProxy("books")
-);
+router.use("/api/books", authenticateToken, createServiceProxy("books"));
 
 // Customers service routes
 router.use(
   "/api/customers",
-  // authenticateToken,
+  authenticateToken,
   createServiceProxy("customers")
 );
 
 // Orders service routes
-router.use(
-  "/api/orders",
-  // authenticateToken,
-  createServiceProxy("orders")
-);
+router.use("/api/orders", authenticateToken, createServiceProxy("orders"));
 
 // Auth service routes
-router.use(
-  "/api/auth",
-  // authenticateToken,
-  createServiceProxy("auth")
-);
+router.use("/api/auth", createServiceProxy("auth"));
 
 module.exports = router;
