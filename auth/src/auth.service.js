@@ -25,15 +25,19 @@ const createCustomer = async (data, res) => {
     };
     const customer = await Customer.create(userNew);
     //ghi lại log
-    logger.info(`Creating new customer: ${JSON.stringify(userNew)}`);
-    logger.info(`Customer created successfully with ID: ${customer._id}`);
+    logger.info(
+      `Auth Service: Creating new customer: ${JSON.stringify(userNew)}`
+    );
+    logger.info(
+      `Auth Service: Customer created successfully with ID: ${customer._id}`
+    );
     return res
       .status(StatusCodes.CREATED)
       .json(
         GlobalResponseData(StatusCodes.CREATED, ReasonPhrases.CREATED, customer)
       );
   } catch (error) {
-    logger.error(`Error creating customer: ${error.message}`);
+    logger.error(`Auth Service: Error creating customer: ${error.message}`);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json(
@@ -63,16 +67,18 @@ const loginCustomerService = async (data, res) => {
         .json(GlobalResponse(StatusCodes.BAD_REQUEST, "Invalid password"));
     }
     const accessToken = await generateToken(
-      { id: checkCustomer._id, email: checkCustomer.email },
+      { _id: checkCustomer._id, email: checkCustomer.email },
       process.env.ACCESS_TOKEN,
       "1h"
     );
     const refreshToken = await generateToken(
-      { id: checkCustomer._id, email: checkCustomer.email },
+      { _id: checkCustomer._id, email: checkCustomer.email },
       process.env.REFRESH_TOKEN,
       "1d"
     );
-    logger.info(`Login customer successfully with ID: ${checkCustomer._id}`);
+    logger.info(
+      `Auth Service: Login customer successfully with ID: ${checkCustomer._id}`
+    );
     return res.status(StatusCodes.OK).json(
       GlobalResponseData(StatusCodes.OK, ReasonPhrases.OK, {
         accessToken,
@@ -80,7 +86,7 @@ const loginCustomerService = async (data, res) => {
       })
     );
   } catch (error) {
-    logger.error(`Error logging in customer: ${error.message}`);
+    logger.error(`Auth Service: Error logging in customer: ${error.message}`);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json(
